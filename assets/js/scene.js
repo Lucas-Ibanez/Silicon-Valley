@@ -600,6 +600,7 @@
   var elIntro = $('heroIntro'), elCard = $('heroCard'), elYear = $('heroYear'), elEra = $('heroEra'), elCap = $('heroCap');
   var elStage = $('heroStage'), elRange = $('heroRange'), elCue = $('heroCue'), elBar = $('heroBar'), elTicks = $('heroTicks');
   var elAuto = $('btnAuto'), elAutoIco = $('btnAutoIco'), elAutoTxt = $('btnAutoTxt');
+  var elPlay = $('heroPlay'), elPlayIco = $('heroPlayIco'), elPlayTxt = $('heroPlayTxt'), playMode = '';
   var curEra = -1, curYear = -1, ticks = [];
   var dwell = [], dwellDone = [], dwellCount = 0;
 
@@ -613,7 +614,7 @@
   });
   function goToEra(i) {
     var top = hero.offsetTop + ((i + 0.5) / N) * (hero.offsetHeight - window.innerHeight);
-    window.scrollTo({ top: top, behavior: SV.reduced() ? 'auto' : 'smooth' });
+    SV.scrollTo(top);
   }
   SV.scene = { goToEra: goToEra, progress: function () { return p; } };
 
@@ -638,6 +639,11 @@
     elYear.style.opacity = c.toFixed(3);
     elCue.style.opacity = (1 - sstep(0, 0.02, p)).toFixed(3);
     elBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+    var pl = sstep(0.03, 0.06, p);
+    elPlay.style.opacity = pl.toFixed(3);
+    elPlay.style.pointerEvents = pl < 0.3 ? 'none' : 'auto';
+    elPlay.tabIndex = pl < 0.3 ? -1 : 0;
+    syncPlay();
 
     var ei = clamp(Math.floor(p * N), 0, N - 1);
     if (ei !== curEra) setEra(ei);
@@ -646,23 +652,62 @@
     if (yr !== curYear) { curYear = yr; elYear.textContent = yr; }
   }
 
-  /* viagem automática */
-  var auto = false, apos = 0;
+  /* viagem automática: rola o herói sozinho, mais devagar perto do centro de cada era
+   * (dá tempo de ler), e ao chegar ao fim segue suavemente para a seção "A travessia". */
+  var auto = false, apos = 0, nextTimer = 0, elStart = $('btnStart');
+  function heroRange() { var top = hero.offsetTop; return { top: top, end: top + hero.offsetHeight - window.innerHeight }; }
   function setAuto(on) {
+    if (on === auto) return;
     auto = on;
-    elAutoIco.textContent = on ? '❚❚' : '▶';
-    elAutoTxt.textContent = on ? 'Pausar viagem' : 'Viagem automática';
+    clearTimeout(nextTimer);
+    [elAuto, elPlay].forEach(function (b) { b.classList.toggle('is-playing', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    syncPlay();
     if (on) {
-      var top = hero.offsetTop, end = top + hero.offsetHeight - window.innerHeight;
+      SV.cancelScroll();
+      var R = heroRange();
       apos = window.scrollY;
-      if (apos < top || apos >= end - 4) { apos = top; window.scrollTo({ top: top, behavior: 'instant' }); }
+      if (apos < R.top || apos >= R.end - 4) apos = R.top;
+      SV.instantScroll(apos);
+    } else {
+      elAuto.style.removeProperty('--prog'); elPlay.style.removeProperty('--prog');
+      SV.releaseScroll();
     }
   }
+  /* rótulos dos dois controles: o do início (some quando a viagem começa) e o fixo no meio da viagem */
+  function syncPlay() {
+    var mode = auto ? 'on' : p > 0.99 ? 'end' : 'off';
+    if (mode === playMode) return;
+    playMode = mode;
+    elAutoIco.textContent = auto ? '❚❚' : '▶'; elAutoTxt.textContent = auto ? 'Pausar viagem' : 'Viagem automática';
+    elPlayIco.textContent = auto ? '❚❚' : mode === 'end' ? '↻' : '▶';
+    elPlayTxt.textContent = auto ? 'Pausar viagem' : mode === 'end' ? 'Rever a viagem' : 'Retomar viagem';
+  }
+  function finishJourney() {
+    setAuto(false);
+    var next = document.getElementById('travessia');
+    if (!next) return;
+    nextTimer = setTimeout(function () { SV.scrollTo(next.getBoundingClientRect().top + window.scrollY, 2); }, 900);
+  }
   elAuto.addEventListener('click', function () { setAuto(!auto); });
-  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
-    window.addEventListener(ev, function (e) {
-      if (auto && !(e.target && e.target.closest && e.target.closest('#btnAuto'))) setAuto(false);
-    }, { passive: true });
+  elPlay.addEventListener('click', function () { setAuto(!auto); });
+  /* qualquer gesto do usuário (roda, toque, teclado, barra de rolagem) assume o controle */
+  SV.onUserScroll(function (e) {
+    var onBtn = e.target && e.target.closest && e.target.closest('#btnAuto, #heroPlay');
+    clearTimeout(nextTimer);
+    if (auto && !onBtn) setAuto(false);
+  });
+
+  /* "Começar a travessia": desliza até a seção 02 */
+  if (elStart) elStart.addEventListener('click', function (e) {
+    e.preventDefault();
+    var sec = document.getElementById('travessia');
+    if (!sec) return;
+    setAuto(false);
+    SV.scrollTo(sec.getBoundingClientRect().top + window.scrollY, null, function (finished) {
+      if (!finished) return;
+      try { history.replaceState(null, '', '#travessia'); } catch (x) { /* file:// restrito */ }
+      var h = sec.querySelector('h2'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    });
   });
 
   /* ---------- eventos ---------- */
@@ -691,8 +736,14 @@
     var total = Math.max(1, hero.offsetHeight - vh);
     target = forced !== null ? forced : clamp(-r.top / total, 0, 1);
     if (auto) {
-      apos += 230 * dt; window.scrollTo({ top: apos, behavior: 'instant' });
-      if (target >= 0.995) setAuto(false);
+      if (Math.abs(window.scrollY - apos) > 6) setAuto(false);          /* o usuário puxou a barra de rolagem */
+      else {
+        var u7a = p * N, dc = Math.abs(u7a - (Math.floor(u7a) + 0.5)), speed = 270 * (0.32 + 0.68 * sstep(0, 0.3, dc));
+        apos = Math.min(apos + speed * dt, heroRange().end + 2);
+        SV.instantScroll(apos);
+        elAuto.style.setProperty('--prog', p.toFixed(3)); elPlay.style.setProperty('--prog', p.toFixed(3));
+        if (target >= 0.995) finishJourney();
+      }
     }
     if (SV.reduced() || forced !== null) p = target;
     else { p += (target - p) * (1 - Math.exp(-dt * 7)); if (Math.abs(target - p) < 0.00008) p = target; }

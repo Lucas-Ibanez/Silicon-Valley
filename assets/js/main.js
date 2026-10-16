@@ -40,6 +40,42 @@
   }
   requestAnimationFrame(tick);
 
+  /* ---------------- rolagem própria ----------------
+   * O CSS usa scroll-behavior: smooth. Para animar a rolagem quadro a quadro (viagem
+   * automática, botões do herói) a classe .no-smooth desliga isso enquanto a animação roda,
+   * assim o resultado é igual em qualquer navegador. Qualquer gesto do usuário cancela. */
+  var scrollJob = null, userTick = [];
+  function setSmooth(off) { root.classList.toggle('no-smooth', off); }
+  SV.instantScroll = function (y) { setSmooth(true); window.scrollTo(0, y); };
+  SV.releaseScroll = function () { if (!scrollJob) setSmooth(false); };
+  SV.cancelScroll = function () { if (scrollJob) { var j = scrollJob; scrollJob = null; setSmooth(false); if (j.done) j.done(false); } };
+  SV.scrollTo = function (y, dur, done) {
+    SV.cancelScroll();
+    y = Math.max(0, Math.min(y, root.scrollHeight - window.innerHeight));
+    var y0 = window.scrollY, dist = y - y0;
+    if (SV.reduced() || Math.abs(dist) < 2) { SV.instantScroll(y); setSmooth(false); if (done) done(true); return; }
+    dur = (dur || U.clamp(Math.abs(dist) / 2600, 0.8, 2.2)) * 1000;
+    var t0 = performance.now(), last = y0, job = { done: done };
+    scrollJob = job; setSmooth(true);
+    (function step(now) {
+      if (scrollJob !== job) return;
+      if (Math.abs(window.scrollY - last) > 8) { SV.cancelScroll(); return; }
+      var k = U.clamp((now - t0) / dur, 0, 1), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      last = y0 + dist * e; window.scrollTo(0, last);
+      if (k < 1) requestAnimationFrame(step);
+      else { scrollJob = null; setSmooth(false); if (done) done(true); }
+    })(t0);
+  };
+  /* gestos do usuário interrompem rolagens animadas (e avisam quem escutou) */
+  SV.onUserScroll = function (fn) { userTick.push(fn); };
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(function (ev) {
+    window.addEventListener(ev, function (e) {
+      if (e.type === 'keydown' && ['Tab', 'Shift', 'Control', 'Alt', 'Meta'].indexOf(e.key) !== -1) return;
+      SV.cancelScroll();
+      for (var i = 0; i < userTick.length; i++) userTick[i](e);
+    }, { passive: true, capture: true });
+  });
+
   /* ---------------- tema ---------------- */
   var themeBtn = $('themeBtn');
   function applyTheme(t) {
@@ -195,39 +231,67 @@
   $('passClose').addEventListener('click', function () { closeDialog(pass); });
   pass.addEventListener('click', function (e) { if (e.target === pass) closeDialog(pass); });
 
-  /* ---------------- navegação ---------------- */
-  var nav = $('nav'), navLinks = $('navLinks'), burger = $('burger'), bar = $('scrollbar');
+  /* ---------------- navegação flutuante ---------------- */
+  var nav = $('nav'), navLinks = $('navLinks'), burger = $('burger'), bar = $('scrollbar'), ind = $('navInd');
+  var navItems = [].slice.call(navLinks.querySelectorAll('a')), activeLink = null, hoverLink = null;
+  var mqMobileNav = window.matchMedia('(max-width: 900px)');
   function setMenu(open) {
     navLinks.classList.toggle('is-open', open);
     burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    burger.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+    root.classList.toggle('nav-open', open);
   }
   burger.addEventListener('click', function () { setMenu(!navLinks.classList.contains('is-open')); });
-  navLinks.addEventListener('click', function (e) { if (e.target.tagName === 'A') setMenu(false); });
+  navLinks.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a')) setMenu(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+  if (mqMobileNav.addEventListener) mqMobileNav.addEventListener('change', function () { setMenu(false); placeInd(); });
+
+  /* indicador deslizante atrás do link ativo (ou do link sob o mouse) */
+  function placeInd() {
+    var el = hoverLink || activeLink;
+    if (!el || mqMobileNav.matches) { ind.classList.remove('is-vis'); return; }
+    var pr = navLinks.getBoundingClientRect(), r = el.getBoundingClientRect();
+    ind.style.width = r.width + 'px';
+    ind.style.transform = 'translateX(' + (r.left - pr.left - 1).toFixed(1) + 'px)';
+    ind.classList.add('is-vis');
+  }
+  navItems.forEach(function (a) {
+    a.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hoverLink = a; placeInd(); } });
+    a.addEventListener('focus', function () { hoverLink = a; placeInd(); });
+    a.addEventListener('blur', function () { hoverLink = null; placeInd(); });
+  });
+  navLinks.addEventListener('pointerleave', function () { hoverLink = null; placeInd(); });
+  window.addEventListener('resize', placeInd);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeInd);
+  function setActive(a) {
+    if (a === activeLink) return;
+    activeLink = a;
+    navItems.forEach(function (x) { x.classList.toggle('is-on', x === a); });
+    placeInd();
+  }
 
   var hero = $('top');
   var linkMap = {};
-  [].forEach.call(navLinks.querySelectorAll('a'), function (a) { linkMap[a.getAttribute('href').slice(1)] = a; });
+  navItems.forEach(function (a) { linkMap[a.getAttribute('href').slice(1)] = a; });
   var sectionObs = new IntersectionObserver(function (entries) {
     entries.forEach(function (en) {
       var a = linkMap[en.target.id];
-      if (!a) return;
-      if (en.isIntersecting) {
-        [].forEach.call(navLinks.querySelectorAll('a'), function (x) { x.classList.remove('is-on'); });
-        a.classList.add('is-on');
-      }
+      if (a && en.isIntersecting) setActive(a);
     });
   }, { rootMargin: '-45% 0px -50% 0px' });
   Object.keys(linkMap).forEach(function (id) { var s = $(id); if (s) sectionObs.observe(s); });
 
-  var scrollY = 0, lastY = 0, vel = 0;
+  var scrollY = 0, lastY = 0, vel = 0, wasHero = null;
   SV.frame(function (t, dt) {
     scrollY = window.scrollY || window.pageYOffset || 0;
     var h = root.scrollHeight - window.innerHeight;
     bar.style.transform = 'scaleX(' + (h > 0 ? U.clamp(scrollY / h, 0, 1) : 0) + ')';
-    nav.classList.toggle('is-scrolled', scrollY > 24);
-    var heroBottom = hero.offsetTop + hero.offsetHeight - 80;
-    nav.classList.toggle('is-hero', scrollY < heroBottom);
+    var heroBottom = hero.offsetTop + hero.offsetHeight - 90, inHero = scrollY < heroBottom;
+    if (inHero !== wasHero) {
+      wasHero = inHero; nav.classList.toggle('is-hero', inHero);
+      if (inHero) setActive(null);
+      setTimeout(placeInd, 60);
+    }
     vel = U.lerp(vel, (scrollY - lastY) / Math.max(dt, 0.001), 0.12);
     lastY = scrollY;
   });
@@ -290,7 +354,7 @@
     b.addEventListener('pointerleave', function () { b.style.transform = ''; });
   });
 
-  $('btnTop').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: SV.reduced() ? 'auto' : 'smooth' }); });
+  $('btnTop').addEventListener('click', function () { SV.scrollTo(0, 2.2); });
 
   /* ---------------- cabeçalhos de modais dos outros módulos ---------------- */
   SV.html = {

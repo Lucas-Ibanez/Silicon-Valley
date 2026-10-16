@@ -6,6 +6,7 @@
   <title>Vale do Silício — Do pomar ao silício</title>
   <meta name="description" content="Uma viagem interativa pela história do Vale do Silício: de pomares de damasco a garagens, chips, internet e inteligência artificial.">
   <meta name="theme-color" content="#07090c">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
@@ -26,10 +27,31 @@
   <!-- ===================== NAV ===================== -->
   <header class="nav" id="nav">
     <a class="nav__brand" href="#top" aria-label="Vale do Silício — início">
-      <svg class="nav__logo" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><rect x="9.5" y="9.5" width="5" height="5" fill="currentColor" stroke="none"/></svg>
-      <span>Vale do Silício</span>
+      <svg class="nav__mark" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
+        <defs>
+          <linearGradient id="lgBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2745"/><stop offset="1" stop-color="#0b1020"/></linearGradient>
+          <linearGradient id="lgSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#ff8a3d"/></linearGradient>
+          <clipPath id="lgSq"><rect width="48" height="48" rx="13"/></clipPath>
+        </defs>
+        <g clip-path="url(#lgSq)">
+          <rect width="48" height="48" fill="url(#lgBg)"/>
+          <g class="lg-stars" fill="#fff"><circle cx="8" cy="9" r=".7"/><circle cx="40" cy="12" r=".6"/><circle cx="36" cy="5" r=".5"/><circle cx="11" cy="17" r=".5"/></g>
+          <circle class="lg-sun" cx="24" cy="26" r="10" fill="url(#lgSun)"/>
+          <rect y="34" width="48" height="14" fill="#0b1b2e"/>
+          <path class="lg-wave" d="M0 38h48M0 43h48" stroke="#4fe3c8" stroke-opacity=".5" stroke-width="1.2" stroke-dasharray="6 5"/>
+          <path class="lg-cable" pathLength="1" d="M3 30Q9 29 15 9Q24 40 33 9Q39 29 45 30" fill="none" stroke="#ffb089" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18.5 19V31M21 23V31M24 24.5V31M27 23V31M29.5 19V31" stroke="#ffb089" stroke-width=".9"/>
+          <rect x="13.4" y="7" width="3.2" height="28" fill="#ff5a36"/><rect x="31.4" y="7" width="3.2" height="28" fill="#ff5a36"/>
+          <rect x="12" y="13" width="6" height="1.6" fill="#ff5a36"/><rect x="30" y="13" width="6" height="1.6" fill="#ff5a36"/>
+          <rect x="12" y="19" width="6" height="1.6" fill="#ff5a36"/><rect x="30" y="19" width="6" height="1.6" fill="#ff5a36"/>
+          <rect x="0" y="30.5" width="48" height="2.4" fill="#ff7a4d"/>
+          <rect class="lg-shine" x="-20" y="-4" width="12" height="60" fill="#fff" opacity=".0" transform="skewX(-20)"/>
+        </g>
+      </svg>
+      <span class="nav__word"><b>Vale do Silício</b><small class="mono">1891 → hoje</small></span>
     </a>
-    <nav class="nav__links" id="navLinks" aria-label="Seções">
+    <nav class="nav__pill" id="navLinks" aria-label="Seções">
+      <span class="nav__ind" id="navInd" aria-hidden="true"></span>
       <a href="#travessia">Travessia</a>
       <a href="#mapa">Linha do Vale</a>
       <a href="#moore">Lei de Moore</a>
@@ -73,8 +95,8 @@
           </h1>
           <p class="lede">O lugar onde damascos viraram chips, garagens viraram impérios e ideias viraram o mundo que conhecemos.</p>
           <div class="actions">
-            <a class="btn btn--primary" href="#travessia" data-mag>Começar a travessia</a>
-            <button class="btn" id="btnAuto" type="button" data-mag>
+            <a class="btn btn--primary" id="btnStart" href="#travessia" data-mag>Começar a travessia</a>
+            <button class="btn" id="btnAuto" type="button" aria-pressed="false" data-mag>
               <span id="btnAutoIco" aria-hidden="true">▶</span> <span id="btnAutoTxt">Viagem automática</span>
             </button>
           </div>
@@ -90,6 +112,7 @@
 
         <nav class="hero__ticks" id="heroTicks" aria-label="Eras da viagem"></nav>
         <div class="hero__cue mono" id="heroCue" aria-hidden="true"><span>Role para viajar no tempo</span><i></i></div>
+        <button class="btn hero__play" id="heroPlay" type="button" aria-pressed="false"><span id="heroPlayIco" aria-hidden="true">▶</span> <span id="heroPlayTxt">Retomar viagem</span></button>
         <div class="hero__bar" aria-hidden="true"><i id="heroBar"></i></div>
       </div>
     </section>
@@ -249,11 +272,17 @@
         <span class="head__num mono">06</span>
         <span class="head__kicker mono">Por que aqui?</span>
         <h2 class="h2">Cinco ingredientes <em>de um ecossistema</em>.</h2>
-        <p class="head__lede">Nenhuma fórmula é suficiente sozinha. O Vale nasceu da combinação certa, no momento certo.</p>
+        <p class="head__lede">Nenhuma fórmula é suficiente sozinha. Explore cada ingrediente nas cenas interativas e acenda o ecossistema inteiro.</p>
       </header>
       <div class="dna reveal" id="dnaBox">
-        <div class="dna__tabs" id="dnaTabs" role="tablist" aria-label="Ingredientes do Vale"></div>
-        <div class="dna__panel" id="dnaPanel" role="tabpanel"></div>
+        <div class="dna__side">
+          <div class="hub" id="dnaHub" role="tablist" aria-label="Ingredientes do Vale"></div>
+          <p class="hub__legend mono">Visite os cinco ingredientes e acenda o ecossistema</p>
+        </div>
+        <div class="dna__main">
+          <div class="dscene" id="dScene" role="region" aria-label="Ilustração interativa do ingrediente"></div>
+          <div class="dinfo" id="dInfo"></div>
+        </div>
       </div>
     </section>
 
@@ -330,6 +359,7 @@
   <script src="assets/js/people-assets.js"></script>
   <script src="assets/js/holo.js"></script>
   <script src="assets/js/people.js"></script>
+  <script src="assets/js/dna-scenes.js"></script>
   <script src="assets/js/dna.js"></script>
   <script src="assets/js/quiz.js"></script>
 </body>

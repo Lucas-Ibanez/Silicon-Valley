@@ -13,7 +13,7 @@ index.html              marcação de todas as seções
 assets/css/styles.css   tokens (tema claro/escuro), layout e componentes
 assets/js/
   data.js               TODO o conteúdo: eras, checkpoints, estações, chips, pessoas, quiz…
-  main.js               núcleo: laço de animação único, tema, nav, XP/conquistas, modal, toasts
+  main.js               núcleo: laço de animação único, tema, header flutuante, XP/conquistas, modal, toasts
   scene.js              herói: cena em canvas 2D guiada pelo scroll (7 eras, ciclo dia/noite)
   timeline.js           "A travessia": trilha SVG que se acende com o scroll
   figures.js            20 ilustrações SVG (uma por checkpoint) que se desenham e se animam
@@ -24,7 +24,8 @@ assets/js/
   people.js             fundadores: cartões com foto, holograma, modal e mural de desenhos ao fundo
   holo.js               holograma em canvas (nuvem de pontos a partir do retrato)
   people-assets.js      (gerado) dados dos hologramas, mural e créditos das fotos
-  dna.js                abas "por que aqui?"
+  dna.js                "Por que aqui?": hub radial com os 5 ingredientes + painel de texto
+  dna-scenes.js         as 5 cenas interativas (campus, simulador de VC, mobilidade, defesa, garagens)
   quiz.js               quiz final
 ```
 
@@ -37,13 +38,17 @@ Os scripts são clássicos (sem módulos ES), então funcionam também via `file
 - **Depuração das cenas:** `index.html?scene=0.5` congela o herói em 50% da viagem e `index.html?cross=0.5` congela a travessia da ponte (valores de 0 a 1).
 - **Progresso salvo:** XP, conquistas e checkpoints visitados ficam no `localStorage` (`sv-state`); o tema em `sv-theme`.
 
+## Header e logo
+
+O header é flutuante, em três "ilhas" de vidro (marca, links e XP/tema) que mudam de cor quando saem do herói. Um indicador desliza atrás do link da seção atual ou sob o mouse; no celular vira um menu em tela cheia. O logo (ponte Golden Gate com sol e mar) está inline no `index.html` e também em `assets/img/favicon.svg`.
+
 ## Fotos e desenhos de pessoas
 
 As fotos dos fundadores e os desenhos em preto e branco do mural vêm do Wikimedia Commons (licenças livres). Os créditos completos estão em `assets/img/people/CREDITS.md` e no rodapé do site. Os desenhos são as fotos processadas com um filtro de lápis, e os hologramas são gerados a partir de versões 96×120 em tons de cinza embutidas em `people-assets.js` (por isso funcionam também via `file://`).
 
 ## Logotipos
 
-Os arquivos em `assets/img/logos/` (Intel, Pentium, Apple, NVIDIA) vieram do Wikimedia Commons. São marcas registradas de seus titulares e aparecem só para identificação histórica e educativa; o rodapé do site traz o aviso. Se o projeto for publicado de forma comercial, confira as diretrizes de uso de marca de cada empresa.
+Os arquivos em `assets/img/logos/` (Intel, Pentium, Apple, NVIDIA, Stanford, UC Berkeley) vieram do Wikimedia Commons. São marcas registradas de seus titulares e aparecem só para identificação histórica e educativa; o rodapé do site traz o aviso. Se o projeto for publicado de forma comercial, confira as diretrizes de uso de marca de cada empresa.
 
 ## Acessibilidade e desempenho
 

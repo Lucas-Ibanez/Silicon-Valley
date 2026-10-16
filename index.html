@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vale do Silício — Do pomar ao silício</title>
+  <meta name="description" content="Uma viagem interativa pela história do Vale do Silício: de pomares de damasco a garagens, chips, internet e inteligência artificial.">
+  <meta name="theme-color" content="#07090c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script>
+    /* aplica o tema salvo antes da primeira pintura (evita "flash") */
+    document.documentElement.classList.add('js');
+    try {
+      var t = localStorage.getItem('sv-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+  <div class="scrollbar" id="scrollbar" aria-hidden="true"></div>
+
+  <!-- ===================== NAV ===================== -->
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#top" aria-label="Vale do Silício — início">
+      <svg class="nav__logo" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><rect x="9.5" y="9.5" width="5" height="5" fill="currentColor" stroke="none"/></svg>
+      <span>Vale do Silício</span>
+    </a>
+    <nav class="nav__links" id="navLinks" aria-label="Seções">
+      <a href="#travessia">Travessia</a>
+      <a href="#mapa">Linha do Vale</a>
+      <a href="#moore">Lei de Moore</a>
+      <a href="#fundadores">Fundadores</a>
+      <a href="#dna">DNA</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+    <div class="nav__right">
+      <button class="xpchip" id="xpChip" type="button" aria-label="Abrir passaporte do explorador">
+        <span class="xpchip__ring" aria-hidden="true"><i id="xpRing"></i></span>
+        <span class="xpchip__txt mono"><b id="xpVal">0</b> XP</span>
+      </button>
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Alternar tema claro e escuro">
+        <svg class="ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="iconbtn nav__burger" id="burger" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" id="top" aria-label="Introdução">
+      <div class="hero__stick">
+        <canvas id="scene" aria-hidden="true"></canvas>
+        <div class="hero__scrim" aria-hidden="true"></div>
+
+        <div class="hero__top mono" aria-hidden="true">
+          <span>Santa Clara Valley · Califórnia</span>
+          <span id="heroCoords">37.3541° N · 121.9552° W</span>
+        </div>
+
+        <div class="hero__intro" id="heroIntro">
+          <p class="eyebrow mono">Uma história em 135 anos</p>
+          <h1 class="display">
+            <span class="line"><span>Do pomar</span></span>
+            <span class="line"><span>ao <em>silício</em>.</span></span>
+          </h1>
+          <p class="lede">O lugar onde damascos viraram chips, garagens viraram impérios e ideias viraram o mundo que conhecemos.</p>
+          <div class="actions">
+            <a class="btn btn--primary" href="#travessia" data-mag>Começar a travessia</a>
+            <button class="btn" id="btnAuto" type="button" data-mag>
+              <span id="btnAutoIco" aria-hidden="true">▶</span> <span id="btnAutoTxt">Viagem automática</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero__card" id="heroCard" aria-live="polite">
+          <div class="hero__cardmeta mono"><span id="heroStage">ESTÁGIO 01 / 07</span><span id="heroRange">1891 – 1938</span></div>
+          <h2 id="heroEra">O Vale dos Encantos</h2>
+          <p id="heroCap"></p>
+        </div>
+
+        <div class="hero__year" id="heroYear" aria-hidden="true">1891</div>
+
+        <nav class="hero__ticks" id="heroTicks" aria-label="Eras da viagem"></nav>
+        <div class="hero__cue mono" id="heroCue" aria-hidden="true"><span>Role para viajar no tempo</span><i></i></div>
+        <div class="hero__bar" aria-hidden="true"><i id="heroBar"></i></div>
+      </div>
+    </section>
+
+    <!-- ===================== TICKER ===================== -->
+    <div class="ticker" aria-hidden="true"><div class="ticker__track" id="tickerTrack"></div></div>
+
+    <!-- ===================== NÚMEROS ===================== -->
+    <section class="section numbers" id="numeros" aria-label="Números que contam a história">
+      <ul class="stats">
+        <li class="stat reveal"><span class="stat__n"><span data-count="538" data-prefix="US$ ">0</span></span><span class="stat__l">capital inicial da HP, 1939</span></li>
+        <li class="stat reveal" style="--d:.08s"><span class="stat__n"><span data-count="8">0</span></span><span class="stat__l">engenheiros que deixaram Shockley, 1957</span></li>
+        <li class="stat reveal" style="--d:.16s"><span class="stat__n"><span data-count="2300">0</span></span><span class="stat__l">transistores no Intel 4004, 1971</span></li>
+        <li class="stat reveal" style="--d:.24s"><span class="stat__n"><span data-count="22" data-prefix="US$ ">0</span></span><span class="stat__l">preço da ação da Apple no IPO, 1980</span></li>
+        <li class="stat reveal" style="--d:.32s"><span class="stat__n"><span data-count="100" data-prefix="US$ " data-suffix=" mil">0</span></span><span class="stat__l">primeiro cheque do Google, 1998</span></li>
+      </ul>
+    </section>
+
+    <!-- ===================== TRAVESSIA ===================== -->
+    <section class="section" id="travessia">
+      <header class="head reveal">
+        <span class="head__num mono">02</span>
+        <span class="head__kicker mono">A travessia</span>
+        <h2 class="h2">Vinte momentos que <em>fizeram o Vale</em>.</h2>
+        <p class="head__lede">Role para acender o caminho, ponto por ponto. Clique em qualquer checkpoint para abrir o arquivo.</p>
+      </header>
+
+      <div class="tl" id="tl">
+        <div class="tl__hud" id="tlHud">
+          <div class="tl__hudrow mono">
+            <span>Checkpoint <b id="tlCount">00 / 20</b></span>
+            <span id="tlEra">—</span>
+          </div>
+          <div class="tl__hudbar"><i id="tlBar"></i></div>
+        </div>
+        <div class="tl__body" id="tlBody">
+          <svg class="tl__svg" id="tlSvg" aria-hidden="true">
+            <path class="tl__base" id="tlBase"></path>
+            <path class="tl__lit" id="tlLit"></path>
+            <g id="tlTraveler" class="tl__traveler"><circle r="14" class="tl__halo"></circle><circle r="5"></circle></g>
+          </svg>
+          <div class="tl__nodes" id="tlNodes"></div>
+          <ol class="tl__list" id="tlList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== LINHA DO VALE ===================== -->
+    <section class="section" id="mapa">
+      <header class="head reveal">
+        <span class="head__num mono">03</span>
+        <span class="head__kicker mono">A Linha do Vale</span>
+        <h2 class="h2">Um mapa, <em>como uma placa de circuito</em>.</h2>
+        <p class="head__lede">De San Francisco a San José, cada parada guarda empresas, garagens e laboratórios. Clique nas estações.</p>
+      </header>
+
+      <div class="valley reveal" id="valley">
+        <div class="valley__filters" id="vFilters" role="group" aria-label="Filtrar por categoria"></div>
+        <div class="valley__grid">
+          <div class="valley__map" id="vMap">
+            <svg id="vSvg" aria-hidden="true"></svg>
+            <div class="valley__pins" id="vPins"></div>
+          </div>
+          <aside class="valley__panel" id="vPanel" aria-live="polite"></aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== LEI DE MOORE ===================== -->
+    <section class="section" id="moore">
+      <header class="head reveal">
+        <span class="head__num mono">04</span>
+        <span class="head__kicker mono">A Lei de Moore</span>
+        <h2 class="h2">Dobrar, dobrar, <em>dobrar de novo</em>.</h2>
+        <p class="head__lede">Em 1965, Gordon Moore notou que o número de componentes por chip crescia em ritmo regular. Arraste pelo gráfico para ver 50 anos de silício.</p>
+      </header>
+
+      <div class="moore reveal">
+        <div class="moore__chart" id="mChart">
+          <canvas id="mCanvas" aria-label="Gráfico logarítmico do número de transistores por chip, de 1971 a 2022" role="img"></canvas>
+        </div>
+        <aside class="moore__side">
+          <div class="readout">
+            <span class="readout__k mono">Ano</span>
+            <output class="readout__year" id="mYear">1971</output>
+            <span class="readout__k mono">Chip mais denso até então</span>
+            <strong class="readout__chip" id="mChip">Intel 4004</strong>
+            <span class="readout__k mono">Transistores</span>
+            <output class="readout__n" id="mCount">2.300</output>
+            <span class="readout__rel mono" id="mRel">1× o Intel 4004</span>
+          </div>
+          <label class="slider">
+            <span class="sr">Ano selecionado</span>
+            <input type="range" id="mSlider" min="1971" max="2022" value="1971" step="0.1">
+          </label>
+          <div class="seg" role="group" aria-label="Período de duplicação">
+            <span class="seg__k mono">Dobra a cada</span>
+            <button type="button" data-t="1.5">1,5 ano</button>
+            <button type="button" data-t="2" class="is-on">2 anos</button>
+            <button type="button" data-t="3">3 anos</button>
+            <button type="button" data-t="0" class="seg__off">Ocultar</button>
+          </div>
+        </aside>
+        <ol class="chiplist" id="mList"></ol>
+      </div>
+    </section>
+
+    <!-- ===================== FUNDADORES ===================== -->
+    <section class="section" id="fundadores">
+      <header class="head reveal">
+        <span class="head__num mono">05</span>
+        <span class="head__kicker mono">Fundadores</span>
+        <h2 class="h2">As pessoas por trás <em>das garagens</em>.</h2>
+        <p class="head__lede">Professores, físicos, engenheiros e sonhadores. Passe o mouse, incline os cartões e abra cada história.</p>
+      </header>
+      <div class="people" id="people"></div>
+    </section>
+
+    <!-- ===================== DNA ===================== -->
+    <section class="section" id="dna">
+      <header class="head reveal">
+        <span class="head__num mono">06</span>
+        <span class="head__kicker mono">Por que aqui?</span>
+        <h2 class="h2">Cinco ingredientes <em>de um ecossistema</em>.</h2>
+        <p class="head__lede">Nenhuma fórmula é suficiente sozinha. O Vale nasceu da combinação certa, no momento certo.</p>
+      </header>
+      <div class="dna reveal" id="dnaBox">
+        <div class="dna__tabs" id="dnaTabs" role="tablist" aria-label="Ingredientes do Vale"></div>
+        <div class="dna__panel" id="dnaPanel" role="tabpanel"></div>
+      </div>
+    </section>
+
+    <!-- ===================== QUIZ ===================== -->
+    <section class="section" id="quiz">
+      <header class="head reveal">
+        <span class="head__num mono">07</span>
+        <span class="head__kicker mono">Teste final</span>
+        <h2 class="h2">Quanto você <em>guardou</em> da viagem?</h2>
+        <p class="head__lede">Seis perguntas. Acerte todas para ganhar a conquista "Gênio do Vale".</p>
+      </header>
+      <div class="quiz reveal" id="quizBox"></div>
+    </section>
+
+    <!-- ===================== FINAL ===================== -->
+    <section class="finale" id="final">
+      <div class="finale__inner reveal">
+        <p class="eyebrow mono">Fim da viagem · começo da sua</p>
+        <h2 class="display display--sm">Toda grande empresa <em>começou pequena</em>.</h2>
+        <p class="lede">A HP tinha US$ 538. A Apple, uma mesa de cozinha. O Google, a garagem de uma amiga. O que o seu "pomar" vai virar?</p>
+        <div class="actions actions--center">
+          <button class="btn btn--primary" id="btnTop" type="button" data-mag>↑ Voltar ao início</button>
+          <button class="btn" id="btnPassport" type="button" data-mag>Ver meu passaporte</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div>
+        <p class="footer__title">Vale do Silício — Do pomar ao silício</p>
+        <p class="footer__txt">Projeto educacional e independente, feito com HTML, CSS e JavaScript puros. As datas e os números foram resumidos de fontes públicas; alguns valores são aproximados. As ilustrações são originais e meramente evocativas.</p>
+      </div>
+      <div>
+        <p class="footer__title">Para ir além</p>
+        <ul class="footer__list">
+          <li>Computer History Museum — computerhistory.org</li>
+          <li>AnnaLee Saxenian — <em>Regional Advantage</em> (1994)</li>
+          <li>David A. Kaplan — <em>The Silicon Boys</em> (1999)</li>
+          <li>Walter Isaacson — <em>The Innovators</em> (2014)</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================== MODAIS / TOASTS ===================== -->
+  <dialog class="modal" id="modal" aria-labelledby="modalTitle">
+    <div class="modal__box">
+      <button class="modal__close iconbtn" id="modalClose" type="button" aria-label="Fechar">✕</button>
+      <div class="modal__body" id="modalBody"></div>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="passport" aria-labelledby="passTitle">
+    <div class="modal__box">
+      <button class="modal__close iconbtn" id="passClose" type="button" aria-label="Fechar">✕</button>
+      <div class="modal__body" id="passBody"></div>
+    </div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/scene.js"></script>
+  <script src="assets/js/timeline.js"></script>
+  <script src="assets/js/valley.js"></script>
+  <script src="assets/js/moore.js"></script>
+  <script src="assets/js/people.js"></script>
+  <script src="assets/js/dna.js"></script>
+  <script src="assets/js/quiz.js"></script>
+</body>
+</html>

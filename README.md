@@ -16,6 +16,7 @@ assets/js/
   main.js               núcleo: laço de animação único, tema, nav, XP/conquistas, modal, toasts
   scene.js              herói: cena em canvas 2D guiada pelo scroll (7 eras, ciclo dia/noite)
   timeline.js           "A travessia": trilha SVG que se acende com o scroll
+  figures.js            20 ilustrações SVG (uma por checkpoint) que se desenham e se animam
   bridge.js             renderizador pseudo-3D da Golden Gate (câmera, painter's algorithm, névoa)
   valley.js             "Linha do Vale": câmera, 10 paradas e painel da travessia da ponte
   moore.js              gráfico logarítmico arrastável (Lei de Moore)

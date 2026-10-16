@@ -24,7 +24,7 @@
     var li = document.createElement('li');
     li.className = 'tl__item tl__item--' + (i % 2 ? 'r' : 'l');
     li.innerHTML =
-      '<div class="tl__year" aria-hidden="true">' + m.year + '</div>' +
+      '<div class="tl__fig" aria-hidden="true">' + (SV.figures ? SV.figures[i] : '') + '</div>' +
       '<article class="tl__card" data-spot tabindex="0" role="button" aria-label="Abrir checkpoint ' + U.pad2(i + 1) + ': ' + U.esc(m.title) + '">' +
         '<span class="tl__yr mono">' + m.year + ' · ' + U.esc(m.place) + '</span>' +
         '<h3>' + U.esc(m.title) + '</h3>' +
@@ -44,6 +44,14 @@
     if (SV.xp.has('cp', i)) n.classList.add('is-visited');
   });
   hudCount.textContent = '00 / ' + U.pad2(N);
+
+  /* anima as ilustrações só enquanto o item está na tela */
+  if (window.IntersectionObserver) {
+    var vio = new IntersectionObserver(function (en) {
+      en.forEach(function (e) { e.target.classList.toggle('in-view', e.isIntersecting); });
+    }, { rootMargin: '80px 0px' });
+    items.forEach(function (li) { vio.observe(li); });
+  } else items.forEach(function (li) { li.classList.add('in-view'); });
 
   /* ---------- geometria ---------- */
   function smooth(P) {

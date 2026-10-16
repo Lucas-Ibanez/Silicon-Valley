@@ -172,36 +172,63 @@
         <span class="head__num mono">04</span>
         <span class="head__kicker mono">A Lei de Moore</span>
         <h2 class="h2">Dobrar, dobrar, <em>dobrar de novo</em>.</h2>
-        <p class="head__lede">Em 1965, Gordon Moore notou que o número de componentes por chip crescia em ritmo regular. Arraste pelo gráfico para ver 50 anos de silício.</p>
+        <p class="head__lede">Em 1965, Gordon Moore notou que o número de componentes por chip crescia em ritmo regular. Aperte play, arraste pelo gráfico ou use as setas e veja 50 anos de silício, chip a chip.</p>
       </header>
 
-      <div class="moore reveal">
-        <div class="moore__chart" id="mChart">
-          <canvas id="mCanvas" aria-label="Gráfico logarítmico do número de transistores por chip, de 1971 a 2022" role="img"></canvas>
+      <div class="moore reveal" id="mooreBox">
+        <div class="moore__top">
+        <div class="moore__main">
+          <div class="moore__chart" id="mChart" tabindex="0" role="application" aria-label="Gráfico logarítmico de transistores por chip. Use as setas para mudar o ano e a barra de espaço para reproduzir.">
+            <canvas id="mCanvas"></canvas>
+          </div>
+          <div class="moore__bar">
+            <button class="btn btn--primary moore__play" id="mPlay" type="button" aria-pressed="false"><span id="mPlayIco" aria-hidden="true">▶</span> <span id="mPlayTxt">Reproduzir 50 anos</span></button>
+            <label class="slider"><span class="sr">Ano selecionado</span><input type="range" id="mSlider" min="1971" max="2022" value="1971" step="0.1"></label>
+            <div class="seg" role="group" aria-label="Período de duplicação">
+              <span class="seg__k mono">Dobra a cada</span>
+              <button type="button" data-t="1.5">1,5 ano</button>
+              <button type="button" data-t="2" class="is-on">2 anos</button>
+              <button type="button" data-t="3">3 anos</button>
+              <button type="button" data-t="0" class="seg__off">Ocultar</button>
+            </div>
+          </div>
+
+          <div class="insights">
+            <div class="ins">
+              <div class="ins__h"><span class="mono">Dobras desde o 4004</span><b id="insDn">0</b></div>
+              <div class="dbl" id="dbl"></div>
+              <p class="ins__t" id="insDt"></p>
+            </div>
+            <div class="ins">
+              <div class="ins__h"><span class="mono">Régua da escala</span></div>
+              <div class="ruler" id="ruler"></div>
+              <p class="ins__t" id="insSt"></p>
+              <p class="ins__n">Desde os anos 1990, o "nm" é o nome comercial do processo, não uma medida literal.</p>
+            </div>
+          </div>
         </div>
-        <aside class="moore__side">
-          <div class="readout">
-            <span class="readout__k mono">Ano</span>
-            <output class="readout__year" id="mYear">1971</output>
-            <span class="readout__k mono">Chip mais denso até então</span>
-            <strong class="readout__chip" id="mChip">Intel 4004</strong>
-            <span class="readout__k mono">Transistores</span>
-            <output class="readout__n" id="mCount">2.300</output>
-            <span class="readout__rel mono" id="mRel">1× o Intel 4004</span>
+
+        <aside class="cockpit" id="mCockpit" aria-live="polite">
+          <div class="cockpit__head">
+            <div><span class="k mono">Ano</span><output class="cockpit__year" id="mYear">1971</output></div>
+            <span class="logo" id="mLogo"></span>
           </div>
-          <label class="slider">
-            <span class="sr">Ano selecionado</span>
-            <input type="range" id="mSlider" min="1971" max="2022" value="1971" step="0.1">
-          </label>
-          <div class="seg" role="group" aria-label="Período de duplicação">
-            <span class="seg__k mono">Dobra a cada</span>
-            <button type="button" data-t="1.5">1,5 ano</button>
-            <button type="button" data-t="2" class="is-on">2 anos</button>
-            <button type="button" data-t="3">3 anos</button>
-            <button type="button" data-t="0" class="seg__off">Ocultar</button>
+          <div class="cockpit__art" id="mArt"></div>
+          <h3 class="cockpit__name" id="mChip">Intel 4004</h3>
+          <p class="cockpit__blurb" id="mBlurb"></p>
+          <div class="cockpit__odo">
+            <span class="k mono">Transistores</span>
+            <div class="odo" id="mOdo"></div>
+            <span class="cockpit__rel mono" id="mRel"></span>
           </div>
+          <dl class="specs" id="mSpecs"></dl>
         </aside>
-        <ol class="chiplist" id="mList"></ol>
+        </div>
+
+        <div class="moore__cards">
+          <p class="moore__hint mono">Passe o mouse sobre um chip para ver como ele era</p>
+          <ol class="chiplist" id="mList"></ol>
+        </div>
       </div>
     </section>
 
@@ -260,6 +287,7 @@
       <div>
         <p class="footer__title">Vale do Silício — Do pomar ao silício</p>
         <p class="footer__txt">Projeto educacional e independente, feito com HTML, CSS e JavaScript puros. As datas e os números foram resumidos de fontes públicas; alguns valores são aproximados. As ilustrações são originais e meramente evocativas.</p>
+        <p class="footer__txt footer__legal">Intel, Pentium, Core, Apple, M1 e NVIDIA são marcas registradas de seus respectivos titulares. Os logotipos (obtidos do Wikimedia Commons) aparecem apenas para identificação histórica e educativa, sem qualquer afiliação ou endosso.</p>
       </div>
       <div>
         <p class="footer__title">Para ir além</p>
@@ -297,6 +325,7 @@
   <script src="assets/js/timeline.js"></script>
   <script src="assets/js/bridge.js"></script>
   <script src="assets/js/valley.js"></script>
+  <script src="assets/js/chipart.js"></script>
   <script src="assets/js/moore.js"></script>
   <script src="assets/js/people.js"></script>
   <script src="assets/js/dna.js"></script>

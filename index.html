@@ -137,23 +137,31 @@
       </div>
     </section>
 
-    <!-- ===================== LINHA DO VALE ===================== -->
-    <section class="section" id="mapa">
+    <!-- ===================== LINHA DO VALE (Golden Gate) ===================== -->
+    <section class="section crossing" id="mapa">
       <header class="head reveal">
         <span class="head__num mono">03</span>
         <span class="head__kicker mono">A Linha do Vale</span>
-        <h2 class="h2">Um mapa, <em>como uma placa de circuito</em>.</h2>
-        <p class="head__lede">De San Francisco a San José, cada parada guarda empresas, garagens e laboratórios. Clique nas estações.</p>
+        <h2 class="h2">Cruze a ponte, <em>percorra o Vale</em>.</h2>
+        <p class="head__lede">Dez paradas, de San Francisco a San José. A Golden Gate não leva ao Vale de verdade; aqui ela é o símbolo da travessia. Role para atravessar e acompanhe o fim de tarde virar noite.</p>
       </header>
 
-      <div class="valley reveal" id="valley">
-        <div class="valley__filters" id="vFilters" role="group" aria-label="Filtrar por categoria"></div>
-        <div class="valley__grid">
-          <div class="valley__map" id="vMap">
-            <svg id="vSvg" aria-hidden="true"></svg>
-            <div class="valley__pins" id="vPins"></div>
+      <div class="cross" id="cross">
+        <div class="cross__stick">
+          <canvas id="bCanvas" aria-hidden="true"></canvas>
+          <div class="cross__scrim" aria-hidden="true"></div>
+          <div class="cross__pins" id="bPins"></div>
+
+          <div class="cross__hud mono" aria-hidden="true">
+            <span id="bStop">PARADA 01 / 10</span>
+            <span id="bDist">0 m</span>
+            <div class="cross__bar"><i id="bBar"></i></div>
           </div>
-          <aside class="valley__panel" id="vPanel" aria-live="polite"></aside>
+
+          <aside class="cross__panel" id="vPanel" aria-live="polite"></aside>
+
+          <p class="cross__hint mono" id="bHint" aria-hidden="true">Role para atravessar <span>↓</span></p>
+          <nav class="cross__ticks" id="bTicks" aria-label="Paradas da Linha do Vale"></nav>
         </div>
       </div>
     </section>
@@ -286,6 +294,7 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/scene.js"></script>
   <script src="assets/js/timeline.js"></script>
+  <script src="assets/js/bridge.js"></script>
   <script src="assets/js/valley.js"></script>
   <script src="assets/js/moore.js"></script>
   <script src="assets/js/people.js"></script>

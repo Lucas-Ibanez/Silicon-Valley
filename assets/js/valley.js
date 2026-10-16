@@ -1,166 +1,166 @@
 /*
- * A Linha do Vale: mapa esquemático (estilo placa de circuito / metrô) de
- * San Francisco a San José. Dois layouts (horizontal e vertical) compartilham
- * os mesmos dados; as estações são botões HTML posicionados em porcentagem
- * sobre um SVG, e um "trem" de luz percorre o tronco até a parada escolhida.
+ * A Linha do Vale: travessia da Golden Gate guiada pelo scroll.
+ * O renderizador (bridge.js) desenha a ponte; aqui ficam a câmera, as 10 paradas
+ * (faróis no tabuleiro, pinos HTML, régua inferior) e o painel de cada parada.
+ * A câmera avança em x de forma linear com o scroll; cada parada fica ~170 m
+ * à frente da câmera quando está "ativa".
+ *
+ * Depuração: index.html?cross=0.5 congela a travessia em 50% (0..1).
  */
 (function () {
   'use strict';
   var SV = window.SV, U = SV.util, DATA = SV.data;
-  var mapEl = document.getElementById('vMap');
-  if (!mapEl) return;
-  var svg = document.getElementById('vSvg'), pinsEl = document.getElementById('vPins');
-  var panel = document.getElementById('vPanel'), filtersEl = document.getElementById('vFilters');
-  var ST = DATA.stations, CATS = DATA.cats;
-  var byId = {};
-  ST.forEach(function (s) { byId[s.id] = s; });
-  var mq = window.matchMedia('(max-width: 920px)');
+  var cross = document.getElementById('cross');
+  if (!cross || !SV.Bridge) return;
+  var clamp = U.clamp, lerp = U.lerp, sstep = U.sstep;
+  var G = SV.GG, ST = DATA.stations, CATS = DATA.cats, N = ST.length;
 
-  /* [id, fração do tronco, lado do rótulo]; stubs: [id, pai, direção, comprimento, lado] */
-  var LAYOUTS = {
-    wide: {
-      vb: [1000, 470],
-      trunk: 'M 74 120 C 280 120 330 250 520 256 S 780 346 926 346',
-      st: [['sf', 0, 't'], ['rc', 0.15, 'b'], ['mp', 0.30, 't'], ['pa', 0.46, 'b'], ['mv', 0.62, 't'], ['sv', 0.77, 't'], ['sc', 0.89, 'b'], ['sj', 1, 't']],
-      stubs: [['st', 'pa', 'u', 88, 't'], ['cu', 'sv', 'd', 88, 'b']]
-    },
-    tall: {
-      vb: [360, 760],
-      trunk: 'M 90 34 C 90 190 215 205 215 370 S 250 590 250 726',
-      st: [['sf', 0, 'r'], ['rc', 0.14, 'r'], ['mp', 0.29, 'r'], ['pa', 0.44, 'r'], ['mv', 0.58, 'l'], ['sv', 0.72, 'r'], ['sc', 0.86, 'l'], ['sj', 1, 'l']],
-      stubs: [['st', 'pa', 'l', 78, 'l'], ['cu', 'sv', 'l', 78, 'l']]
+  var canvas = document.getElementById('bCanvas'), pinsEl = document.getElementById('bPins'), ticksEl = document.getElementById('bTicks');
+  var panel = document.getElementById('vPanel'), stage = cross.querySelector('.cross__stick');
+  var hudStop = document.getElementById('bStop'), hudDist = document.getElementById('bDist'), hudBar = document.getElementById('bBar'), hint = document.getElementById('bHint');
+  var bridge = SV.Bridge(canvas);
+
+  /* ---------- paradas ao longo do tabuleiro ---------- */
+  var PAD = 0.12, SA = -G.SIDE + 80, SB = G.SPAN + G.SIDE - 60, AHEAD = 170;
+  function stationX(k) { return SA + (SB - SA) * k / (N - 1); }
+  function pOf(k) { return PAD + (1 - 2 * PAD) * k / (N - 1); }
+  function xCam(p) { return (SA - AHEAD) + (SB - SA) * ((p - PAD) / (1 - 2 * PAD)); }
+  var X_START = xCam(0);
+
+  /* ---------- câmera: desce e avança pela ponte, com um leve arco ---------- */
+  var Y_KEYS = [[-800, 194], [-330, 150], [0, 122], [420, 110], [1280, 86], [1800, 82]];
+  function camY(x) {
+    for (var i = 0; i < Y_KEYS.length - 1; i++) {
+      var a = Y_KEYS[i], b = Y_KEYS[i + 1];
+      if (x <= b[0]) return lerp(a[1], b[1], sstep(a[0], b[0], x));
     }
-  };
-  var DIR = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
-
-  var trunk = null, lit = null, train = null, packets = [], L = 0;
-  var pins = {}, pos = {}, selected = null, flt = 'all';
-  var curLen = 0, tgtLen = 0;
-
-  /* ---------- filtros ---------- */
-  function buildFilters() {
-    var html = '<span class="seg__k mono">Destacar</span><button type="button" class="chipbtn is-on" data-f="all">Tudo</button>';
-    Object.keys(CATS).forEach(function (k) { html += '<button type="button" class="chipbtn" data-f="' + k + '">' + U.esc(CATS[k]) + '</button>'; });
-    filtersEl.innerHTML = html;
-    filtersEl.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-f]');
-      if (!b) return;
-      flt = b.dataset.f;
-      [].forEach.call(filtersEl.querySelectorAll('.chipbtn'), function (x) { x.classList.toggle('is-on', x === b); });
-      applyFilter();
-    });
+    return Y_KEYS[Y_KEYS.length - 1][1];
   }
-  function matches(it) { return flt === 'all' || it.c === flt; }
-  function applyFilter() {
-    ST.forEach(function (s) {
-      var pin = pins[s.id]; if (!pin) return;
-      var any = s.items.some(matches);
-      pin.classList.toggle('is-dim', flt !== 'all' && !any);
-      pin.classList.toggle('is-match', flt !== 'all' && any);
-    });
-    [].forEach.call(panel.querySelectorAll('.vp__item'), function (el) {
-      el.classList.toggle('is-dim', !(flt === 'all' || el.dataset.c === flt));
-    });
+  function cameraAt(p, mx, my, tall) {
+    var x = xCam(p), arc = Math.sin(p * Math.PI);
+    var z = (tall ? 700 : 560) * (1 - sstep(X_START, -230, x)) + mx * 9;
+    var y = camY(x) - arc * 6 - my * 5;
+    var tx = x + lerp(820, 1000, sstep(X_START, 0, x)), ty = lerp(100, 70, sstep(X_START, 100, x)) + my * 10;
+    return { pos: [x, y, z], tgt: [tx, ty, mx * 55], fov: tall ? 72 : 56, cy: tall ? 0.3 : 0.5 };
   }
 
-  /* ---------- construção ---------- */
-  function build() {
-    var cfg = LAYOUTS[mq.matches ? 'tall' : 'wide'], vbW = cfg.vb[0], vbH = cfg.vb[1];
-    mapEl.classList.toggle('is-tall', mq.matches);
-    mapEl.style.aspectRatio = vbW + ' / ' + vbH;
-    svg.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
-    svg.innerHTML = '<path class="v-trunk" id="vTrunk" d="' + cfg.trunk + '"/>' +
-      '<g id="vBranches"></g>' +
-      '<path class="v-trunk-in" d="' + cfg.trunk + '"/>' +
-      '<path class="v-glow" id="vLit" d="' + cfg.trunk + '"/>' +
-      '<g id="vPackets"></g>' +
-      '<g class="v-train" id="vTrain"><circle class="v-halo" r="13"/><circle r="4.5"/></g>';
-    trunk = svg.querySelector('#vTrunk'); lit = svg.querySelector('#vLit'); train = svg.querySelector('#vTrain');
-    L = trunk.getTotalLength();
-    lit.style.strokeDasharray = L + ' ' + L;
-    var pk = svg.querySelector('#vPackets'); packets = [];
-    for (var k = 0; k < 4; k++) {
-      var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      c.setAttribute('r', '2.6'); c.setAttribute('fill', 'currentColor'); c.setAttribute('class', 'v-packet');
-      c.style.color = 'var(--accent2)'; pk.appendChild(c); packets.push(c);
-    }
+  /* ---------- DOM: pinos e régua ---------- */
+  var pins = [], ticks = [];
+  ST.forEach(function (s, k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'bpin is-hidden';
+    b.setAttribute('aria-label', 'Parada ' + U.pad2(k + 1) + ': ' + s.name);
+    b.innerHTML = '<i class="bpin__dot"></i><span class="bpin__lbl">' + U.esc(s.name) + '</span>';
+    b.addEventListener('click', function () { goTo(k); });
+    pinsEl.appendChild(b); pins.push(b);
 
-    pos = {};
-    var branches = svg.querySelector('#vBranches'), html = '';
-    cfg.st.forEach(function (s) {
-      var pt = trunk.getPointAtLength(L * s[1]);
-      pos[s[0]] = { x: pt.x, y: pt.y, f: s[1], side: s[2] };
+    var t = document.createElement('button');
+    t.type = 'button'; t.className = 'btick';
+    t.setAttribute('aria-label', 'Ir para ' + s.name);
+    t.innerHTML = '<span class="mono">' + U.pad2(k + 1) + '</span><b>' + U.esc(s.name) + '</b>';
+    t.addEventListener('click', function () { goTo(k); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); var n = clamp(k + d, 0, N - 1); goTo(n); ticks[n].focus(); }
     });
-    cfg.stubs.forEach(function (b) {
-      var par = pos[b[1]], d = DIR[b[2]];
-      var x = par.x + d[0] * b[3], y = par.y + d[1] * b[3];
-      pos[b[0]] = { x: x, y: y, f: par.f, side: b[4] };
-      html += '<path class="v-branch" d="M' + par.x.toFixed(1) + ',' + par.y.toFixed(1) + ' L' + x.toFixed(1) + ',' + y.toFixed(1) + '"/>';
-    });
-    branches.innerHTML = html;
+    ticksEl.appendChild(t); ticks.push(t);
+  });
 
-    pinsEl.innerHTML = ''; pins = {};
-    ST.forEach(function (s) {
-      var p = pos[s.id];
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'stn stn--' + p.side + (SV.xp.has('st', s.id) ? ' is-visited' : '');
-      b.style.left = (p.x / vbW * 100) + '%'; b.style.top = (p.y / vbH * 100) + '%';
-      b.setAttribute('aria-label', s.name + ': ' + s.tag);
-      b.innerHTML = '<i class="stn__dot"></i><span class="stn__lbl">' + U.esc(s.name) + '</span>';
-      b.addEventListener('click', function () { select(s.id, true); });
-      pinsEl.appendChild(b); pins[s.id] = b;
-    });
-    if (selected) { pins[selected].classList.add('is-on'); tgtLen = L * pos[selected].f; curLen = tgtLen; }
-    applyFilter();
+  function goTo(k) {
+    var top = cross.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top + pOf(k) * (cross.offsetHeight - window.innerHeight), behavior: SV.reduced() ? 'auto' : 'smooth' });
   }
 
   /* ---------- painel ---------- */
-  function render(s) {
+  var activeIdx = -1;
+  function renderPanel(k) {
+    var s = ST[k];
     var rows = s.items.slice().sort(function (a, b) { return a.y - b.y; }).map(function (it) {
-      return '<div class="vp__item' + (matches(it) ? '' : ' is-dim') + '" data-c="' + it.c + '"><span class="vp__y">' + it.y + '</span><div>' +
+      return '<div class="vp__item"><span class="vp__y">' + it.y + '</span><div>' +
         '<div class="vp__n">' + U.esc(it.n) + ' <span class="vp__c">' + U.esc(CATS[it.c]) + '</span></div>' +
         '<p class="vp__t">' + U.esc(it.t) + '</p></div></div>';
     }).join('');
-    panel.innerHTML = '<div class="vp__head vp__enter"><span class="vp__tag mono">' + U.esc(s.tag) + '</span>' +
+    panel.innerHTML = '<div class="vp__enter"><span class="vp__tag mono">Parada ' + U.pad2(k + 1) + ' / ' + U.pad2(N) + ' · ' + U.esc(s.tag) + '</span>' +
       '<h3 class="vp__name">' + U.esc(s.name) + '</h3><p class="vp__fact">' + U.esc(s.fact) + '</p>' +
-      '<p class="vp__hint mono">' + SV.xp.count('st') + ' / ' + ST.length + ' paradas visitadas</p></div>' +
-      '<div class="vp__list vp__enter">' + rows + '</div>';
-  }
-  function select(id, user) {
-    selected = id;
-    Object.keys(pins).forEach(function (k) { pins[k].classList.toggle('is-on', k === id); });
-    render(byId[id]);
-    tgtLen = L * pos[id].f;
-    if (user) {
-      if (SV.xp.mark('st', id, 8, byId[id].name + ' visitada')) pins[id].classList.add('is-visited');
-      var hint = panel.querySelector('.vp__hint');
-      if (hint) hint.textContent = SV.xp.count('st') + ' / ' + ST.length + ' paradas visitadas';
-    }
+      '<div class="vp__list">' + rows + '</div></div>';
+    panel.scrollTop = 0;
   }
 
-  /* ---------- animação ---------- */
-  var visible = false;
-  if (window.IntersectionObserver) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(mapEl);
+  function setActive(k) {
+    activeIdx = k;
+    renderPanel(k);
+    hudStop.textContent = 'PARADA ' + U.pad2(k + 1) + ' / ' + U.pad2(N);
+    ticks.forEach(function (t, i) {
+      t.classList.toggle('is-on', i === k);
+      t.classList.toggle('is-past', i < k);
+      if (i === k) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current');
+    });
+  }
+
+  /* ---------- laço ---------- */
+  var pS = 0, mx = 0, my = 0, tmx = 0, tmy = 0, dwell = 0, wasActive = -1, tall = false;
+  stage.addEventListener('pointermove', function (e) {
+    var r = stage.getBoundingClientRect();
+    tmx = ((e.clientX - r.left) / r.width - 0.5) * 2; tmy = ((e.clientY - r.top) / r.height - 0.5) * 2;
+  }, { passive: true });
+  stage.addEventListener('pointerleave', function () { tmx = 0; tmy = 0; });
+
+  function resize() { bridge.resize(); var s = bridge.size(); tall = s[1] > s[0]; }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+  resize();
+
+  var markers = ST.map(function (s, k) { return { x: stationX(k), mode: 0 }; });
+  var forced = (/[?&]cross=([0-9.]+)/.exec(window.location.search) || [])[1];
+  forced = forced === undefined ? null : clamp(parseFloat(forced), 0, 1);
+
   SV.frame(function (t, dt) {
-    if (!visible || !L) return;
-    curLen += (tgtLen - curLen) * (SV.reduced() ? 1 : 1 - Math.exp(-dt * 3.2));
-    lit.style.strokeDashoffset = (L - curLen).toFixed(1);
-    var pt = trunk.getPointAtLength(curLen);
-    train.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ',' + pt.y.toFixed(1) + ')');
-    if (!SV.reduced()) {
-      for (var i = 0; i < packets.length; i++) {
-        var q = trunk.getPointAtLength(((t * 0.06 + i / packets.length) % 1) * L);
-        packets[i].setAttribute('cx', q.x.toFixed(1)); packets[i].setAttribute('cy', q.y.toFixed(1));
+    var r = cross.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.bottom < -80 || r.top > vh + 80) return;
+    var total = Math.max(1, cross.offsetHeight - vh);
+    var target = forced !== null ? forced : clamp(-r.top / total, 0, 1);
+    if (SV.reduced() || forced !== null) pS = target; else pS += (target - pS) * (1 - Math.exp(-dt * 4.5));
+    var k = 1 - Math.exp(-dt * 3);
+    mx += (tmx - mx) * k; my += (tmy - my) * k;
+
+    var act = clamp(Math.round((pS - PAD) / (1 - 2 * PAD) * (N - 1)), 0, N - 1);
+    if (act !== activeIdx) setActive(act);
+    for (var i = 0; i < N; i++) markers[i].mode = i === act ? 2 : i < act ? 1 : 0;
+
+    bridge.render(cameraAt(pS, mx, my, tall), { t: pS, time: t, markers: markers });
+
+    /* pinos */
+    var size = bridge.size(), W = size[0], H = size[1];
+    for (i = 0; i < N; i++) {
+      var pr = bridge.project([stationX(i), G.DECK_Y + 1.5, 0]), pin = pins[i];
+      var off = !pr || pr.z > 2400 || pr.x < -30 || pr.x > W + 30 || pr.y < 0 || pr.y > H;
+      pin.classList.toggle('is-hidden', off);
+      if (off) continue;
+      pin.style.transform = 'translate(' + (pr.x - 17).toFixed(1) + 'px,' + (pr.y - 17).toFixed(1) + 'px)';
+      pin.style.setProperty('--s', clamp(320 / pr.z, 0.55, 1.3).toFixed(2));
+      pin.style.zIndex = Math.max(1, 3000 - Math.round(pr.z));
+      pin.classList.toggle('is-active', i === act);
+      pin.classList.toggle('is-past', i < act);
+      if (i === act) {
+        var lw = pin.lastChild.offsetWidth / 2 + 10, dx = 0;
+        if (pr.x - lw < 0) dx = lw - pr.x; else if (pr.x + lw > W) dx = W - pr.x - lw;
+        pin.style.setProperty('--dx', dx.toFixed(1) + 'px');
       }
     }
-  });
 
-  buildFilters();
-  selected = 'pa';
-  build();
-  render(byId[selected]);
-  pins[selected].classList.add('is-on');
-  tgtLen = curLen = L * pos[selected].f;
-  if (mq.addEventListener) mq.addEventListener('change', function () { build(); render(byId[selected]); }); else mq.addListener(function () { build(); render(byId[selected]); });
+    /* HUD */
+    hudDist.textContent = U.fmt(Math.max(0, xCam(pS) - X_START)) + ' m';
+    hudBar.style.transform = 'scaleX(' + pS.toFixed(4) + ')';
+    hint.style.opacity = (1 - sstep(0.01, 0.05, pS)).toFixed(3);
+    var po = sstep(0.025, 0.075, pS);
+    panel.style.opacity = po.toFixed(3);
+    panel.style.pointerEvents = po < 0.3 ? 'none' : '';
+    panel.style.transform = 'translateY(' + ((1 - po) * 14).toFixed(1) + 'px)';
+
+    /* XP: parar um instante numa estação conta como visita */
+    if (act === wasActive && Math.abs(target - pS) < 0.012 && pS > PAD * 0.6) {
+      dwell += dt;
+      if (dwell > 0.9) SV.xp.mark('st', ST[act].id, 8, ST[act].name + ' visitada');
+    } else { dwell = 0; wasActive = act; }
+  });
+  setActive(0);
 })();

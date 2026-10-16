@@ -16,7 +16,8 @@ assets/js/
   main.js               núcleo: laço de animação único, tema, nav, XP/conquistas, modal, toasts
   scene.js              herói: cena em canvas 2D guiada pelo scroll (7 eras, ciclo dia/noite)
   timeline.js           "A travessia": trilha SVG que se acende com o scroll
-  valley.js             "Linha do Vale": mapa esquemático clicável
+  bridge.js             renderizador pseudo-3D da Golden Gate (câmera, painter's algorithm, névoa)
+  valley.js             "Linha do Vale": câmera, 10 paradas e painel da travessia da ponte
   moore.js              gráfico logarítmico arrastável (Lei de Moore)
   people.js             cartões de fundadores com inclinação 3D
   dna.js                abas "por que aqui?"
@@ -29,7 +30,7 @@ Os scripts são clássicos (sem módulos ES), então funcionam também via `file
 
 - **Textos e datas:** `assets/js/data.js`.
 - **Cores e tema:** variáveis em `:root` e `:root[data-theme="light"]` no CSS. A cena do herói usa a paleta própria em `scene.js` (`KN`).
-- **Depuração da cena:** `index.html?scene=0.5` congela o herói em 50% da viagem (0 a 1).
+- **Depuração das cenas:** `index.html?scene=0.5` congela o herói em 50% da viagem e `index.html?cross=0.5` congela a travessia da ponte (valores de 0 a 1).
 - **Progresso salvo:** XP, conquistas e checkpoints visitados ficam no `localStorage` (`sv-state`); o tema em `sv-theme`.
 
 ## Acessibilidade e desempenho

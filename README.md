@@ -21,7 +21,9 @@ assets/js/
   valley.js             "Linha do Vale": câmera, 10 paradas e painel da travessia da ponte
   moore.js              Lei de Moore: gráfico animado, cockpit, odômetro, régua de escala e cards com prévia
   chipart.js            retratos SVG dos 14 processadores (encapsulamento + floorplan do die)
-  people.js             cartões de fundadores com inclinação 3D
+  people.js             fundadores: cartões com foto, holograma, modal e mural de desenhos ao fundo
+  holo.js               holograma em canvas (nuvem de pontos a partir do retrato)
+  people-assets.js      (gerado) dados dos hologramas, mural e créditos das fotos
   dna.js                abas "por que aqui?"
   quiz.js               quiz final
 ```
@@ -34,6 +36,10 @@ Os scripts são clássicos (sem módulos ES), então funcionam também via `file
 - **Cores e tema:** variáveis em `:root` e `:root[data-theme="light"]` no CSS. A cena do herói usa a paleta própria em `scene.js` (`KN`).
 - **Depuração das cenas:** `index.html?scene=0.5` congela o herói em 50% da viagem e `index.html?cross=0.5` congela a travessia da ponte (valores de 0 a 1).
 - **Progresso salvo:** XP, conquistas e checkpoints visitados ficam no `localStorage` (`sv-state`); o tema em `sv-theme`.
+
+## Fotos e desenhos de pessoas
+
+As fotos dos fundadores e os desenhos em preto e branco do mural vêm do Wikimedia Commons (licenças livres). Os créditos completos estão em `assets/img/people/CREDITS.md` e no rodapé do site. Os desenhos são as fotos processadas com um filtro de lápis, e os hologramas são gerados a partir de versões 96×120 em tons de cinza embutidas em `people-assets.js` (por isso funcionam também via `file://`).
 
 ## Logotipos
 

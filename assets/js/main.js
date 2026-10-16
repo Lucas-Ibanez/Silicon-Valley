@@ -160,7 +160,7 @@
   };
   $('modalClose').addEventListener('click', SV.modal.close);
   modal.addEventListener('click', function (e) { if (e.target === modal) SV.modal.close(); });
-  modal.addEventListener('close', function () { modalKeys = null; });
+  modal.addEventListener('close', function () { modalKeys = null; if (SV.modal.onClose) { var f = SV.modal.onClose; SV.modal.onClose = null; f(); } });
   modal.addEventListener('keydown', function (e) {
     if (!modalKeys) return;
     if (e.key === 'ArrowLeft' && modalKeys.prev) { e.preventDefault(); modalKeys.prev(); }

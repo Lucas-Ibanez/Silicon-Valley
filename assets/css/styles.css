@@ -968,6 +968,8 @@ html.nav-open { overflow: hidden; }
 .footer__title { font-weight: 600; margin-bottom: 10px; }
 .footer__txt, .footer__list { color: var(--muted); font-size: .88rem; line-height: 1.6; max-width: 62ch; }
 .footer__list li + li { margin-top: 4px; }
+.footer__list a { text-decoration: none; transition: color .2s; }
+.footer__list a:hover, .footer__list a:focus-visible { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
 .footer em { color: var(--text); }
 .credits { margin-top: 16px; font-size: .78rem; color: var(--dim); }
 .credits summary { cursor: pointer; color: var(--muted); }

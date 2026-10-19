@@ -27,28 +27,18 @@
   <!-- ===================== NAV ===================== -->
   <header class="nav" id="nav">
     <a class="nav__brand" href="#top" aria-label="Vale do Silício — início">
-      <svg class="nav__mark" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
-        <defs>
-          <linearGradient id="lgBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2745"/><stop offset="1" stop-color="#0b1020"/></linearGradient>
-          <linearGradient id="lgSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#ff8a3d"/></linearGradient>
-          <clipPath id="lgSq"><rect width="48" height="48" rx="13"/></clipPath>
-        </defs>
-        <g clip-path="url(#lgSq)">
-          <rect width="48" height="48" fill="url(#lgBg)"/>
-          <g class="lg-stars" fill="#fff"><circle cx="8" cy="9" r=".7"/><circle cx="40" cy="12" r=".6"/><circle cx="36" cy="5" r=".5"/><circle cx="11" cy="17" r=".5"/></g>
-          <circle class="lg-sun" cx="24" cy="26" r="10" fill="url(#lgSun)"/>
-          <rect y="34" width="48" height="14" fill="#0b1b2e"/>
-          <path class="lg-wave" d="M0 38h48M0 43h48" stroke="#4fe3c8" stroke-opacity=".5" stroke-width="1.2" stroke-dasharray="6 5"/>
-          <path class="lg-cable" pathLength="1" d="M3 30Q9 29 15 9Q24 40 33 9Q39 29 45 30" fill="none" stroke="#ffb089" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M18.5 19V31M21 23V31M24 24.5V31M27 23V31M29.5 19V31" stroke="#ffb089" stroke-width=".9"/>
-          <rect x="13.4" y="7" width="3.2" height="28" fill="#ff5a36"/><rect x="31.4" y="7" width="3.2" height="28" fill="#ff5a36"/>
-          <rect x="12" y="13" width="6" height="1.6" fill="#ff5a36"/><rect x="30" y="13" width="6" height="1.6" fill="#ff5a36"/>
-          <rect x="12" y="19" width="6" height="1.6" fill="#ff5a36"/><rect x="30" y="19" width="6" height="1.6" fill="#ff5a36"/>
-          <rect x="0" y="30.5" width="48" height="2.4" fill="#ff7a4d"/>
-          <rect class="lg-shine" x="-20" y="-4" width="12" height="60" fill="#fff" opacity=".0" transform="skewX(-20)"/>
-        </g>
+      <svg class="nav__bridge nav__bridge--wide" viewBox="0 0 148 40" width="148" height="40" aria-hidden="true">
+        <path d="M0 26H148V28.2H0Z" fill="#ff6a3d"/>
+        <path d="M10 23.39V26M13.2 21.15V26M16.4 18.77V26M19.6 16.24V26M22.8 13.54V26M26 10.64V26M32.4 9.04V26M35.6 11.31V26M38.8 13.4V26M42 15.31V26M45.2 17.04V26M48.4 18.58V26M51.6 19.95V26M54.8 21.13V26M58 22.13V26M61.2 22.95V26M64.4 23.58V26M67.6 24.04V26M70.8 24.31V26M74 24.4V26M77.2 24.31V26M80.4 24.04V26M83.6 23.58V26M86.8 22.95V26M90 22.13V26M93.2 21.13V26M96.4 19.95V26M99.6 18.58V26M102.8 17.04V26M106 15.31V26M109.2 13.4V26M112.4 11.31V26M115.6 9.04V26M122 10.64V26M125.2 13.54V26M128.4 16.24V26M131.6 18.77V26M134.8 21.15V26M138 23.39V26" stroke="#ff8a5c" stroke-opacity=".6" stroke-width=".45"/>
+        <path class="lg-cable" pathLength="1" d="M6 26Q19.29 17.64 29.73 7Q74 41.8 118.27 7Q128.71 17.64 142 26" fill="none" stroke="#ff8a5c" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M27.93 5.4H31.53V13.46H31.82V19.92H32.05V26H32.23V35H27.23V26H27.41V19.92H27.63V13.46H27.93ZM116.47 5.4H120.07V13.46H120.37V19.92H120.59V26H120.77V35H115.77V26H115.95V19.92H116.18V13.46H116.47Z" fill="#ff5a36"/>
       </svg>
-      <span class="nav__word"><b>Vale do Silício</b><small class="mono">1891 → hoje</small></span>
+      <svg class="nav__bridge nav__bridge--sm" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+        <path d="M0 27H40V28.9H0Z" fill="#ff6a3d"/>
+        <path d="M4.4 20.78V27M7 12.67V27M9.6 11.53V27M12.2 17.25V27M14.8 21.33V27M17.4 23.78V27M20 24.6V27M22.6 23.78V27M25.2 21.33V27M27.8 17.25V27M30.4 11.53V27M33 12.67V27M35.6 20.78V27" stroke="#ff8a5c" stroke-opacity=".6" stroke-width=".4"/>
+        <path class="lg-cable" pathLength="1" d="M2 27Q5.52 18.64 8.28 8Q20 41.2 31.72 8Q34.48 18.64 38 27" fill="none" stroke="#ff8a5c" stroke-width="1.1" stroke-linecap="round"/>
+        <path d="M6.98 6.4H9.58V14.46H9.79V20.92H9.95V27H10.08V34H6.48V27H6.61V20.92H6.77V14.46H6.98ZM30.42 6.4H33.02V14.46H33.23V20.92H33.39V27H33.52V34H29.92V27H30.05V20.92H30.21V14.46H30.42Z" fill="#ff5a36"/>
+      </svg>
     </a>
     <nav class="nav__pill" id="navLinks" aria-label="Seções">
       <span class="nav__ind" id="navInd" aria-hidden="true"></span>

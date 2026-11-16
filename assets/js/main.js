@@ -166,15 +166,15 @@
     },
     has: has,
     count: function (g) { return state.seen[g] ? state.seen[g].length : 0; },
+    /* devolve o XP ganho nesta tentativa (0 se não houve recorde) e o total do passaporte */
     quizDone: function (score) {
-      var first = state.best === 0 && score > 0;
       if (score > state.best) {
         var gain = (score - state.best) * 10 + (state.best === 0 ? 50 : 0);
         state.best = score; state.xp += gain;
         SV.toast('Quiz concluído: ' + score + '/' + DATA.quiz.length, '+' + gain + ' XP', 'xp');
       }
       refreshChip(true); checkAch(); save();
-      return first;
+      return { gain: gain || 0, total: state.xp };
     }
   };
   refreshChip(false);
